@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  webapp:
+    build: ./webapp
+    ports:
+      - "8080:80"
+    environment:
+      MYSQL_HOST: database
+      MYSQL_USER: root
+      MYSQL_PASSWORD: toor123!
+      MYSQL_DATABASE: vulnmart
+    volumes:
+      - ./webapp/uploads:/var/www/html/uploads
+    depends_on:
+      - database
+    networks:
+      - vulnmart-network
+
+  database:
+    build: ./database
+    environment:
+      MYSQL_ROOT_PASSWORD: toor123!
+      MYSQL_DATABASE: vulnmart
+    ports:
+      - "3306:3306"  # ¡VULNERABILIDAD: Puerto expuesto innecesariamente!
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - vulnmart-network
+
+  admin_service:
+    build: ./admin_service
+    environment:
+      ADMIN_SECRET: "supersecretkey123"
+      DB_HOST: database
+      DB_USER: root
+      DB_PASSWORD: toor123!
+    networks:
+      - vulnmart-network
+    # ¡VULNERABILIDAD: Sin autenticación interna!
+
+networks:
+  vulnmart-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
